@@ -1,0 +1,9 @@
+services:
+  db:
+    image: neo4j:5
+    environment:
+      NEO4J_AUTH: neo4j/password1234
+    ports: ["7474:7474", "7687:7687"]   # 7474 = browser UI, 7687 = Bolt
+    volumes: ["neo4j_data:/data"]
+volumes:
+  neo4j_data:
