@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>VC Portfolio Analytics</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<style>
+:root{color-scheme:dark;--bg:#050805;--card:#0d130e;--ink:#e8f5ea;--mute:#8aa391;--line:#1c2a1f;--a:#22c55e;--b:#4ade80;--c:#a3e635;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 16px 48px}
+h1{font-size:26px;margin:0}.sub{color:var(--mute);margin:4px 0 20px}
+.grid{display:grid;gap:14px}.k{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}.two{grid-template-columns:repeat(auto-fit,minmax(340px,1fr));margin-top:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 0 24px rgba(34,197,94,.05)}.kv{color:var(--b)}
+.card h2{font-size:15px;margin:0 0 4px}.card p{color:var(--mute);font-size:12.5px;margin:0 0 14px}
+.kv{font-size:28px;font-weight:700}.kl{color:var(--mute);font-size:12.5px}
+.row{display:grid;grid-template-columns:130px 1fr 70px;gap:10px;align-items:center;margin:8px 0;font-size:13px}
+.bar{height:10px;border-radius:6px;background:var(--line);overflow:hidden}.bar i{display:block;height:100%;border-radius:6px;background:var(--a)}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:13px}
+th{color:var(--mute);font-weight:500;text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}td{padding:8px;border-bottom:1px solid var(--line)}
+.tag{padding:2px 8px;border-radius:99px;background:var(--line);font-size:11.5px}
+select,input{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font:inherit}
+.ctl{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px;font-size:13px}
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:12px}.vs div{border:1px solid var(--line);border-radius:10px;padding:12px}
+.tabs{display:flex;gap:8px;margin-bottom:6px}.tabs button,.btn{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:8px 16px;font:inherit;cursor:pointer}.tabs .on,.btn{background:var(--a);color:#04140a;border-color:var(--a);font-weight:600}
+.fg{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.fg label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--mute)}.fg input,.fg select{width:100%}.msg{margin-top:12px;font-size:13px;color:var(--b)}
+</style>
+</head>
+<body><div id="root"></div>
+<script>
+const h=React.createElement,{useState,useEffect}=React;
+const INDS=["FinTech","Healthcare","SaaS","CleanTech","EdTech"],STAGES=["Seed","Series A","Series B","Series C"];
+const fm=v=>v==null?"–":v>=1000?"$"+(v/1000).toFixed(2)+"B":"$"+Number(v).toFixed(0)+"M";
+const Bars=({items,color})=>{const m=Math.max(...items.map(i=>i.v),1);return items.map(i=>h("div",{className:"row",key:i.l},h("span",null,i.l),h("div",{className:"bar"},h("i",{style:{width:i.v/m*100+"%",background:color}})),h("span",{className:"num"},fm(i.v))))};
+function useApi(api,paths){
+const[st,setSt]=useState({loading:true}),[n,setN]=useState(0);
+useEffect(()=>{let ok=true;setSt({loading:true});
+Promise.all(paths.map(p=>fetch(api+p).then(r=>{if(!r.ok)throw new Error("HTTP "+r.status);return r.json()}))).then(d=>ok&&setSt({d})).catch(e=>ok&&setSt({err:e.message}));
+return()=>{ok=false}},[api,n]);
+return[st,()=>setN(x=>x+1)]}
+const T={
+startup:{label:"Startup",f:[["startup_name","Name"],["industry","Industry","sel",INDS],["founded_year","Founded year","number"],["headquarters","Headquarters"],["founder_name","Founder"],["valuation","Valuation ($M)","number"]]},
+investment:{label:"Investment",f:[["fund_id","Fund","fund"],["startup_id","Startup","startup"],["investment_amount","Amount ($M)","number"],["investment_date","Date","date"],["equity_percentage","Equity %","number"],["investment_stage","Stage","sel",STAGES]]},
+vc_fund:{label:"VC fund",f:[["vc_firm_id","VC firm ID","number"],["fund_name","Fund name"],["fund_size","Fund size ($M)","number"],["vintage_year","Vintage year","number"],["fund_status","Status","sel",["Active","Fundraising","Closed"]],["investment_focus","Investment focus"]]},
+vc_firm:{label:"VC firm",f:[["firm_name","Firm name"],["headquarters","Headquarters"],["founded_year","Founded year","number"],["website","Website"],["contact_email","Contact email"],["assets_under_management","AUM ($M)","number"]]},
+limited_partner:{label:"Limited partner",f:[["lp_name","Name"],["lp_type","Type","sel",["Pension fund","Endowment","Family office","Corporate"]],["contact_email","Contact email"],["phone_number","Phone"],["country","Country"]]},
+lp_investment:{label:"LP investment",f:[["lp_id","LP ID","number"],["fund_id","Fund","fund"],["contribution_amount","Contribution ($M)","number"],["contribution_date","Date","date"],["ownership_percentage","Ownership %","number"]]},
+funding_round:{label:"Funding round",f:[["startup_id","Startup","startup"],["round_no","Round no.","number"],["round_type","Type","sel",STAGES],["round_date","Date","date"],["total_raised","Total raised ($M)","number"],["lead_investor","Lead investor"]]},
+exit:{label:"Exit",f:[["startup_id","Startup","startup"],["exit_type","Type","sel",["IPO","Acquisition","Merger"]],["exit_date","Date","date"],["exit_value","Value ($M)","number"],["acquiring_company","Acquiring company"]]}};
+function Entry({api}){
+const[t,setT]=useState("startup"),[v,setV]=useState({}),[msg,setMsg]=useState(""),[opt,setOpt]=useState(null),[log,setLog]=useState([]);
+useEffect(()=>{let ok=true;Promise.all([fetch(api+"/api/funds/totals").then(r=>r.json()),fetch(api+"/api/startups/top?limit=100").then(r=>r.json())]).then(([f,s])=>ok&&setOpt({fund:f.map(x=>[x.fund_id,x.fund_name]),startup:s.map(x=>[x.startup_id,x.startup_name])})).catch(()=>ok&&setOpt(null));return()=>{ok=false}},[api,log.length]);
+const O=opt||{fund:[],startup:[]};
+const def=T[t];
+const save=async()=>{
+const body={};def.f.forEach(([k,,ty])=>{const x=v[k];if(x!==undefined&&x!=="")body[k]=["number","fund","startup"].includes(ty)?+x:x});
+if(!Object.keys(body).length)return setMsg("Fill in at least one field.");
+let where;
+try{const r=await fetch(api+"/api/data/"+t,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});if(!r.ok)throw new Error((await r.json()).error||"Error "+r.status);where="database"}
+catch(e){return setMsg(e instanceof TypeError?"Cannot reach the API at "+api+". Is the backend running?":"Not saved: "+e.message)}
+setLog(l=>[def.label+" → "+where,...l].slice(0,5));setMsg("Added to "+where+".");setV({})};
+const set=(k,x)=>setV({...v,[k]:x});
+return h("div",{className:"wrap"},h("h1",null,"Data entry"),h("div",{className:"sub"},"Add records to the database. Amounts and valuations are in $M."),
+h("div",{className:"tabs",style:{flexWrap:"wrap",marginBottom:14}},Object.keys(T).map(k=>h("button",{key:k,className:t===k?"on":"",onClick:()=>{setT(k);setV({});setMsg("")}},T[k].label))),
+h("div",{className:"card"},h("div",{className:"fg"},def.f.map(([k,l,ty,o])=>h("label",{key:k},l,
+ty==="sel"||ty==="fund"||ty==="startup"?h("select",{value:v[k]??"",onChange:e=>set(k,e.target.value)},h("option",{value:""},"Select…"),(ty==="sel"?o.map(x=>[x,x]):O[ty]).map(([a,b])=>h("option",{key:a,value:a},b))):h("input",{type:ty==="number"?"number":ty==="date"?"date":"text",step:"any",value:v[k]??"",onChange:e=>set(k,e.target.value)})))),
+h("div",{style:{marginTop:14}},h("button",{className:"btn",onClick:save},"Save "+def.label.toLowerCase())),
+msg&&h("div",{className:"msg"},msg)),
+log.length>0&&h("div",{className:"card",style:{marginTop:14}},h("h2",null,"Recent entries"),log.map((l,i)=>h("div",{key:i,className:"kl",style:{margin:"4px 0"}},l))))}
+const P=["/api/kpis","/api/funds/totals","/api/startups/top?limit=100","/api/industries"];
+function Dashboard({api}){
+const[st,retry]=useApi(api,P),[a,setA]=useState(""),[b,setB]=useState(""),[th,setTh]=useState(2);
+if(st.loading)return h("div",{className:"wrap"},h("div",{className:"sub"},"Loading from the database…"));
+if(st.err)return h("div",{className:"wrap"},h("div",{className:"card"},h("h2",null,"Cannot reach the API"),h("p",null,"Could not load data from "+api+" ("+st.err+"). Check that the backend is running (npm start) and that the API URL above is correct."),h("button",{className:"btn",onClick:retry},"Retry")));
+const[k,fund,su,ind]=st.d;
+if(!su.length&&!fund.length)return h("div",{className:"wrap"},h("div",{className:"card"},h("h2",null,"No data yet"),h("p",null,"The database is empty. Run npm run seed in the backend folder, or add records in the Data entry tab.")));
+const A=a||(ind[0]&&ind[0].industry),B=b||(ind[1]&&ind[1].industry),names=ind.map(i=>i.industry);
+const Sel=(v,f)=>h("select",{value:v,onChange:e=>f(e.target.value)},names.map(i=>h("option",{key:i},i)));
+const Box=n=>{const x=ind.find(i=>i.industry===n);return x?h("div",null,h("div",{className:"kl"},n),h("div",{className:"kv"},fm(x.total)),h("div",{className:"kl"},x.startups+" startups · avg "+fm(x.total/x.startups)+" each")):h("div",{className:"kl"},"No data")};
+const mx=Math.max(...fund.map(f=>f.startups),1),big=fund.filter(f=>f.startups>=th).sort((x,y)=>y.startups-x.startups||y.total-x.total);
+return h("div",{className:"wrap"},
+h("h1",null,"Portfolio Analytics"),h("div",{className:"sub"},"Live data from your Neo4j database"),
+h("div",{className:"grid k"},[["Total invested",fm(k.total_invested)],["Startups",k.startups],["Funds",k.funds],["Investments",k.investments]].map(c=>h("div",{className:"card",key:c[0]},h("div",{className:"kl"},c[0]),h("div",{className:"kv"},c[1])))),
+h("div",{className:"grid two"},
+h("div",{className:"card"},h("h2",null,"Total investment by fund"),h("p",null,"Sum of investment amounts per fund"),h(Bars,{items:fund.map(f=>({l:f.fund_name,v:f.total}))})),
+h("div",{className:"card"},h("h2",null,"Investment by industry"),h("p",null,"Capital received per startup industry"),h(Bars,{color:"var(--b)",items:ind.map(i=>({l:i.industry,v:i.total}))}))),
+h("div",{className:"grid two"},
+h("div",{className:"card"},h("h2",null,"Compare industries"),h("p",null,"Pick any two industries"),h("div",{className:"ctl"},Sel(A,setA),"vs",Sel(B,setB)),h("div",{className:"vs"},Box(A),Box(B))),
+h("div",{className:"card"},h("h2",null,"Funds with large portfolios"),h("p",null,"Minimum number of startups funded"),h("div",{className:"ctl"},h("input",{type:"range",min:1,max:mx,value:Math.min(th,mx),onChange:e=>setTh(+e.target.value)}),h("b",null,"≥ "+Math.min(th,mx))),
+big.length?big.map(f=>h("div",{className:"row",key:f.fund_id},h("span",null,f.fund_name),h("div",{className:"bar"},h("i",{style:{width:f.startups/mx*100+"%",background:"var(--c)"}})),h("span",{className:"num"},f.startups+" cos"))):h("div",{className:"kl"},"No fund meets this threshold."))),
+h("div",{className:"card",style:{marginTop:14}},h("h2",null,"Highest-valued startups"),h("p",null,"Ranked by valuation, with total funding received"),
+h("div",{className:"tw"},h("table",null,h("thead",null,h("tr",null,["Startup","Industry","Founded","Valuation","Invested"].map(t=>h("th",{key:t},t)))),
+h("tbody",null,su.slice(0,8).map(t=>h("tr",{key:t.startup_id},h("td",null,h("b",null,t.startup_name)),h("td",null,h("span",{className:"tag"},t.industry)),h("td",null,t.founded_year),h("td",null,fm(t.valuation)),h("td",null,fm(t.invested)))))))));
+}
+function App(){
+const[tab,setTab]=useState("dash"),[api,setApi]=useState("http://localhost:4000");
+return h("div",null,h("div",{className:"wrap",style:{paddingBottom:0}},h("div",{className:"tabs",style:{flexWrap:"wrap",alignItems:"center"}},[["dash","Dashboard"],["data","Data entry"]].map(([k,l])=>h("button",{key:k,className:tab===k?"on":"",onClick:()=>setTab(k)},l)),h("span",{className:"ctl",style:{marginLeft:"auto",marginBottom:0}},"API",h("input",{value:api,onChange:e=>setApi(e.target.value),style:{minWidth:220}})))),tab==="dash"?h(Dashboard,{api}):h(Entry,{api}))}
+ReactDOM.createRoot(document.getElementById("root")).render(h(App));
+</script></body></html>
